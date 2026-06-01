@@ -9,10 +9,10 @@ export function ResultsPanel({ refreshKey }: Props) {
   const [results, setResults] = useState<ResultItem[]>([])
   const [initialLoading, setInitialLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  
+
   useEffect(() => {
     let cancelled = false
-  
+
     fetchResults()
       .then((data) => {
         if (!cancelled) {
@@ -26,7 +26,7 @@ export function ResultsPanel({ refreshKey }: Props) {
       .finally(() => {
         if (!cancelled) setInitialLoading(false)
       })
-  
+
     return () => {
       cancelled = true
     }
