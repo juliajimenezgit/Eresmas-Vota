@@ -37,6 +37,12 @@ export interface AdminDashboardData {
   recent_votes: AdminVoteItem[]
 }
 
+export interface AdminResetVotesResponse {
+  success: boolean
+  message: string
+  deleted_votes: number
+}
+
 export async function submitVote(charanga: string, deviceId: string): Promise<VoteResponse> {
   const { data } = await api.post<VoteResponse>('/api/vote', { charanga, deviceId })
   return data
@@ -53,6 +59,19 @@ export async function fetchAdminDashboard(adminKey: string): Promise<AdminDashbo
       'X-Admin-Key': adminKey,
     },
   })
+  return data
+}
+
+export async function resetAdminVotes(adminKey: string): Promise<AdminResetVotesResponse> {
+  const { data } = await api.post<AdminResetVotesResponse>(
+    '/api/admin/reset-votes',
+    {},
+    {
+      headers: {
+        'X-Admin-Key': adminKey,
+      },
+    },
+  )
   return data
 }
 

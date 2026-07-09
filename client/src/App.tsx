@@ -51,19 +51,43 @@ function PublicVotingApp() {
         <div className="absolute right-4 top-4">
           <ThemeToggleButton theme={theme} onToggle={toggleTheme} />
         </div>
-        <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-300/80">CONCURSO DE CHARANGAS</p>
-        <div className="mt-3 flex items-center justify-center gap-4">
+        <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-300/80">QUINTANAR DEL REY</p>
+        <div className="mt-4 flex justify-center">
           <img
-            src="/charanga-eresmas.png"
-            alt="Logo Charanga EresMas"
-            className="h-16 w-16 rounded-xl border border-white/20 bg-white/10 object-cover shadow-lg"
+            src="/champi_logo.png"
+            alt="Mascota del concurso"
+            className="h-32 w-32 object-contain md:h-36 md:w-36"
           />
-          <h1 className="text-4xl font-black tracking-tight text-white md:text-5xl">Eresmas Vota</h1>
+        </div>
+        <div className="mx-auto mt-4 max-w-4xl">
+          <h1 className="text-3xl font-black tracking-tight text-white md:text-5xl">
+            II CONCURSO NACIONAL DE CHARANGAS
+          </h1>
         </div>
         <p className="mx-auto mt-3 max-w-xl text-white/60">
           Elige tu charanga favorita. Solo un voto por dispositivo. Los nombres de las charangas
           aparecen en orden de actuación.
         </p>
+        <div className="mx-auto mt-5 max-w-3xl rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+          <p className="mb-3 text-xs uppercase tracking-[0.25em] text-white/65">Organizan</p>
+          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
+            <img
+              src="/eresmas_logo.png"
+              alt="Logo EresMas"
+              className="h-20 w-20 object-contain md:h-24 md:w-24"
+            />
+            <img
+              src="/quintanar_logo.png"
+              alt="Logo Quintanar"
+              className="h-20 w-20 object-contain md:h-24 md:w-24"
+            />
+            <img
+              src="/qtt_logo.png"
+              alt="Logo QTT"
+              className="h-20 w-20 object-contain md:h-24 md:w-24"
+            />
+          </div>
+        </div>
       </header>
 
       <main className="mx-auto grid max-w-6xl gap-8 px-4 py-10 lg:grid-cols-[1fr_320px]">

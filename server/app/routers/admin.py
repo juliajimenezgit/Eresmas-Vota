@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Vote
-from app.schemas import AdminDashboard, AdminVoteItem, ResultItem
+from app.schemas import AdminDashboard, AdminResetVotesResponse, AdminVoteItem, ResultItem
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -74,3 +74,17 @@ def admin_dashboard(
     _: None = Depends(require_admin),
 ):
     return build_dashboard(db)
+
+
+@router.post("/reset-votes", response_model=AdminResetVotesResponse)
+def reset_votes(
+    db: Session = Depends(get_db),
+    _: None = Depends(require_admin),
+):
+    deleted_votes = db.query(Vote).delete()
+    db.commit()
+    return AdminResetVotesResponse(
+        success=True,
+        message="Se han eliminado todos los votos.",
+        deleted_votes=deleted_votes,
+    )

@@ -36,3 +36,9 @@ class AdminDashboard(BaseModel):
     last_vote_at: datetime | None = None
     votes_by_charanga: list[ResultItem]
     recent_votes: list[AdminVoteItem]
+
+
+class AdminResetVotesResponse(BaseModel):
+    success: bool
+    message: str
+    deleted_votes: int

@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react'
+import axios from 'axios'
 import { ThemeToggleButton } from './ThemeToggleButton'
-import { fetchAdminDashboard, type AdminDashboardData } from '../lib/api'
+import { fetchAdminDashboard, resetAdminVotes, type AdminDashboardData } from '../lib/api'
 import { useThemeMode } from '../lib/theme'
 
 const ADMIN_KEY_STORAGE = 'eresmas_admin_key'
@@ -35,6 +36,8 @@ export function AdminDashboard() {
   const [inputKey, setInputKey] = useState('')
   const [dashboard, setDashboard] = useState<AdminDashboardData | null>(null)
   const [loading, setLoading] = useState(false)
+  const [resettingVotes, setResettingVotes] = useState(false)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const authenticated = Boolean(adminKey)
@@ -54,13 +57,18 @@ export function AdminDashboard() {
       if (!silent) {
         setError(null)
       }
-    } catch {
+    } catch (err) {
       if (silent) {
         // Keep panel stable on transient polling errors.
         return
       }
+      const isUnauthorized = axios.isAxiosError(err) && err.response?.status === 401
       setDashboard(null)
-      setError('Clave incorrecta o servidor no disponible')
+      setError(
+        isUnauthorized
+          ? 'Contraseña incorrecta. Inténtalo de nuevo.'
+          : 'No se pudo conectar con el servidor. Inténtalo de nuevo.',
+      )
       localStorage.removeItem(ADMIN_KEY_STORAGE)
       setAdminKey('')
     } finally {
@@ -88,6 +96,7 @@ export function AdminDashboard() {
     event.preventDefault()
     const key = inputKey.trim()
     if (!key) return
+    setError(null)
     localStorage.setItem(ADMIN_KEY_STORAGE, key)
     setAdminKey(key)
     setInputKey('')
@@ -98,6 +107,25 @@ export function AdminDashboard() {
     setAdminKey('')
     setDashboard(null)
     setError(null)
+  }
+
+  const onConfirmResetVotes = async () => {
+    if (resettingVotes) return
+    setResettingVotes(true)
+    try {
+      await resetAdminVotes(adminKey)
+      setShowResetConfirm(false)
+      await loadData(adminKey, { silent: true })
+    } catch (err) {
+      const isUnauthorized = axios.isAxiosError(err) && err.response?.status === 401
+      setError(
+        isUnauthorized
+          ? 'No autorizado para reiniciar votos. Inicia sesión de nuevo.'
+          : 'No se pudieron reiniciar los votos. Inténtalo de nuevo.',
+      )
+    } finally {
+      setResettingVotes(false)
+    }
   }
 
   if (!authenticated) {
@@ -126,6 +154,11 @@ export function AdminDashboard() {
               Entrar al panel
             </button>
           </form>
+          {error && (
+            <p className="mt-3 rounded-lg border border-rose-400/30 bg-rose-500/15 px-3 py-2 text-sm text-rose-100">
+              {error}
+            </p>
+          )}
           <p className="mt-4 text-xs text-white/50">URL de uso interno para organización.</p>
         </div>
       </div>
@@ -146,6 +179,13 @@ export function AdminDashboard() {
           <div className="flex w-full flex-col items-end gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
             <button
               type="button"
+              onClick={() => setShowResetConfirm(true)}
+              className="order-2 rounded-lg border border-amber-400/40 px-3 py-2 text-sm text-amber-100 hover:bg-amber-500/20 sm:order-2"
+            >
+              Reiniciar votos
+            </button>
+            <button
+              type="button"
               onClick={onLogout}
               className="order-3 rounded-lg border border-rose-400/40 px-3 py-2 text-sm text-rose-200 hover:bg-rose-500/20 sm:order-3"
             >
@@ -158,13 +198,6 @@ export function AdminDashboard() {
               </span>
               {loading && !dashboard ? 'Cargando…' : 'En directo'}
             </div>
-            <button
-              type="button"
-              onClick={() => void loadData(adminKey, { silent: true })}
-              className="order-2 rounded-lg border border-white/20 px-3 py-2 text-sm hover:bg-white/10 sm:order-2"
-            >
-              Actualizar
-            </button>
             <p className="order-4 mt-1 text-right text-xs text-white/50 sm:basis-full sm:order-4">
               Actualización automática cada 5 segundos
             </p>
@@ -250,6 +283,36 @@ export function AdminDashboard() {
           </>
         )}
       </div>
+
+      {showResetConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-lg rounded-2xl border border-white/15 bg-slate-900 p-6 shadow-2xl">
+            <h3 className="text-xl font-bold text-white">Confirmar reinicio de votos</h3>
+            <p className="mt-3 text-sm text-white/75">
+              Si pulsas confirmar, se borrarán todos los votos registrados hasta ahora. ¿Quieres
+              confirmar o prefieres cancelar?
+            </p>
+            <div className="mt-5 flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowResetConfirm(false)}
+                disabled={resettingVotes}
+                className="rounded-lg border border-white/20 px-4 py-2 text-sm text-white/85 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => void onConfirmResetVotes()}
+                disabled={resettingVotes}
+                className="rounded-lg border border-rose-400/40 bg-rose-500/20 px-4 py-2 text-sm font-semibold text-rose-100 hover:bg-rose-500/30 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {resettingVotes ? 'Reiniciando…' : 'Confirmar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
